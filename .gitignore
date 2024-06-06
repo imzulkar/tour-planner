@@ -7,8 +7,8 @@ __pycache__/
 *.so
 #media files
 media/
-#Migrations files
-*/migrations/[0-9]*.py
+# #Migrations files
+# */migrations/[0-9]*.py
 # Distribution / packaging
 .Python
 build/
@@ -63,7 +63,6 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
