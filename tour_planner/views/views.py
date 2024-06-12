@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -54,7 +56,8 @@ class DistrictViewset(ModelViewSet):
     def get_queryset(self):
         if self.request.query_params.get('search'):
             search = self.request.query_params.get('search')
-            return District.objects.filter(Q(name__icontains=search) | Q(bn_name__icontains=search))
+            date = self.request.query_params.get('date')
+            return District.objects.filter(Q(name__icontains=search) | Q(bn_name__icontains=search) | Q())
         return District.objects.all()
 
 
@@ -65,8 +68,14 @@ class WeatherViewset(ModelViewSet):
     def get_queryset(self):
         if self.request.query_params.get('search'):
             search = self.request.query_params.get('search')
+            date = self.request.query_params.get('date')
             if search == 'coolest':
-                return WeatherUpdate.objects.order_by('min_temp','avg_temp').all()[:1]
+                return WeatherUpdate.objects.order_by('min_temp', 'avg_temp').all()[:1]
             if search == 'hottest':
-                return WeatherUpdate.objects.order_by('-max_temp','-avg_temp').all()[:1]
+                return WeatherUpdate.objects.order_by('-max_temp', '-avg_temp').all()[:1]
+            if search and date is not None:
+                query_date = datetime.strptime(date, '%Y-%m-%d').date()
+                return WeatherUpdate.objects.filter(
+                    Q(district__name__icontains=search) | Q(district__bn_name__icontains=search),
+                    date=query_date)
         return WeatherUpdate.objects.order_by('avg_temp').all()

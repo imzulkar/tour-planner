@@ -8,6 +8,10 @@ class WeatherUpdateSerializer(serializers.ModelSerializer):
     district_bn_name = serializers.CharField(source='district.bn_name')
     lat = serializers.FloatField(source='district.lat')
     lon = serializers.FloatField(source='district.lon')
+    min_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    max_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    avg_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    rain = serializers.DecimalField(max_digits=5, decimal_places=2)
 
     class Meta:
         model = WeatherUpdate
@@ -15,9 +19,15 @@ class WeatherUpdateSerializer(serializers.ModelSerializer):
 
 
 class WeatherInfoSerializer(serializers.ModelSerializer):
+    min_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    max_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    avg_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
+    rain = serializers.DecimalField(max_digits=5, decimal_places=2)
+
     class Meta:
         model = WeatherUpdate
         fields = '__all__'
+
 
 class DistrictSerializer(serializers.ModelSerializer):
     weather = WeatherInfoSerializer(many=True, read_only=True, source='weather_updates')

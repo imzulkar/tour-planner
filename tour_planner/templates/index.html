@@ -42,9 +42,10 @@
 </div>
 
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">Leaflet Map with Search</h1>
+        <h1 class="text-2xl font-bold mb-4">Tour Map Update</h1>
         <div class="mb-4">
-            <input id="district" type="text" placeholder="Jessore" class="border p-2 rounded mb-2 w-full" />
+            <input id="district" type="text" placeholder="Search District" class="border p-2 rounded mb-2 w-full" />
+            <input id="dateInput" type="date" placeholder="Date" class="border p-2 rounded mb-2 w-full" />
             <button id="searchLocation" class="bg-blue-500 text-white p-2 rounded w-full">Search Location</button>
         </div>
         <div id="map" class="mb-4"></div>
@@ -208,7 +209,6 @@ function fetchPlace(coolest=false, hottest=false, value='') {
     })
         .then(response => response.json())
         .then(data => {
-            console.log("data", data);
             if (data.status === "success" && Array.isArray(data.data)) {
 
                     data.data.forEach(district => {
@@ -228,9 +228,9 @@ function fetchPlace(coolest=false, hottest=false, value='') {
     {#fetchPlace();#}
 }
 
-        function fetchTravelPlace(value) {
+        function fetchTravelPlace(value, date='') {
             // Actual API URL
-            const apiUrl = `/tour/weather/?search=${value}`;
+            const apiUrl = `/tour/weather/?search=${value}&date=${date}`;
 
             fetch(apiUrl,{
                 method: 'GET',
@@ -253,10 +253,24 @@ function fetchPlace(coolest=false, hottest=false, value='') {
             // Call fetchPlace on page load
             {#fetchPlace();#}
         }
-
+        let searchValue = "";
+        let seachDate = "";
         document.getElementById('district').addEventListener('keyup', (event) => {
-            const value = event.target.value;
-            fetchPlace(false, false, value);
+            searchValue = event.target.value;
+
+            if (searchValue!=="" && seachDate!=="" ){
+                fetchTravelPlace( searchValue, seachDate);
+            }else {
+                fetchPlace(false, false, searchValue);
+            }
+        });
+
+
+        document.getElementById('dateInput').addEventListener('change', (event) => {
+            seachDate = event.target.value;
+            if (searchValue!=="" && seachDate!=="" ){
+                fetchTravelPlace( searchValue, seachDate);
+            }
         });
     </script>
     {% endblock %}
