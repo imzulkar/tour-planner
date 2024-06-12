@@ -66,16 +66,23 @@ class WeatherViewset(ModelViewSet):
     serializer_class = WeatherUpdateSerializer
 
     def get_queryset(self):
+
+        data = WeatherUpdate.objects.all()
         if self.request.query_params.get('search'):
             search = self.request.query_params.get('search')
-            date = self.request.query_params.get('date')
+            date = self.request.query_params.get('date', '')
+            # if search and date != '':
+            #     query_date = datetime.strptime(date, '%Y-%m-%d').date()
+            #     return WeatherUpdate.objects.filter(
+            #         Q(district__name__icontains=search) | Q(district__bn_name__icontains=search),
+            #         date=query_date)[:1]
             if search == 'coolest':
-                return WeatherUpdate.objects.order_by('min_temp', 'avg_temp').all()[:1]
+                data = WeatherUpdate.objects.order_by('min_temp', 'avg_temp').all()
+
             if search == 'hottest':
-                return WeatherUpdate.objects.order_by('-max_temp', '-avg_temp').all()[:1]
-            if search and date is not None:
+                data = WeatherUpdate.objects.order_by('max_temp', '-avg_temp').all()
+            if date != "":
                 query_date = datetime.strptime(date, '%Y-%m-%d').date()
-                return WeatherUpdate.objects.filter(
-                    Q(district__name__icontains=search) | Q(district__bn_name__icontains=search),
-                    date=query_date)
-        return WeatherUpdate.objects.order_by('avg_temp').all()
+                return data.filter(date=query_date)[:1]
+            return data[:1]
+        return data.order_by('-avg_temp')

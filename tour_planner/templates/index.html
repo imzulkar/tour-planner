@@ -108,12 +108,12 @@
 
         document.getElementById('coolestPlace').addEventListener('click', () => {
             // Example coordinates for a cool place (Mount Everest)
-            fetchTravelPlace('coolest');
+            fetchTravelPlace('coolest',seachDate?seachDate:'');
         });
 
         document.getElementById('hottestPlace').addEventListener('click', () => {
             // Example coordinates for a hot place (Death Valley, California)
-            fetchTravelPlace('hottest');
+            fetchTravelPlace('hottest',seachDate?seachDate:'');
         });
         document.getElementById('loadData').addEventListener('click', () => {
             // Example coordinates for a hot place (Death Valley, California)
@@ -230,7 +230,10 @@ function fetchPlace(coolest=false, hottest=false, value='') {
 
         function fetchTravelPlace(value, date='') {
             // Actual API URL
-            const apiUrl = `/tour/weather/?search=${value}&date=${date}`;
+            let apiUrl = `/tour/weather/?search=${value}`;
+            if (date!==''){
+                apiUrl+=`&date=${date}`;
+            }
 
             fetch(apiUrl,{
                 method: 'GET',
