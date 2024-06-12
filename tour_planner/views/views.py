@@ -68,21 +68,23 @@ class WeatherViewset(ModelViewSet):
     def get_queryset(self):
 
         data = WeatherUpdate.objects.all()
-        if self.request.query_params.get('search'):
-            search = self.request.query_params.get('search')
-            date = self.request.query_params.get('date', '')
-            # if search and date != '':
-            #     query_date = datetime.strptime(date, '%Y-%m-%d').date()
-            #     return WeatherUpdate.objects.filter(
-            #         Q(district__name__icontains=search) | Q(district__bn_name__icontains=search),
-            #         date=query_date)[:1]
-            if search == 'coolest':
+
+        search = self.request.query_params.get('search')
+        date = self.request.query_params.get('date', '')
+        min_temp = self.request.query_params.get('min_temp', 0)
+        max_temp = self.request.query_params.get('max_temp', 100)
+        if search or date or (min_temp and max_temp):
+            if search and search == 'coolest':
                 data = WeatherUpdate.objects.order_by('min_temp', 'avg_temp').all()
 
-            if search == 'hottest':
+            if search and search == 'hottest':
                 data = WeatherUpdate.objects.order_by('max_temp', '-avg_temp').all()
             if date != "":
                 query_date = datetime.strptime(date, '%Y-%m-%d').date()
-                return data.filter(date=query_date)[:1]
+                data = data.filter(date=query_date)
+
+            # print(data)
+            if min_temp != "" and max_temp != "":
+                return data.filter(Q(min_temp__gte=min_temp, max_temp__lte=max_temp))[:10]
             return data[:1]
         return data.order_by('-avg_temp')

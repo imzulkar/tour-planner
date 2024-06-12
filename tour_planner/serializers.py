@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from tour_planner.models import District, WeatherUpdate
+from tour_planner.models import District, WeatherUpdate, TouristPlace
+
+
+class TourPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TouristPlace
+        fields = '__all__'
 
 
 class WeatherUpdateSerializer(serializers.ModelSerializer):
@@ -12,6 +18,7 @@ class WeatherUpdateSerializer(serializers.ModelSerializer):
     max_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
     avg_temp = serializers.DecimalField(max_digits=5, decimal_places=2)
     rain = serializers.DecimalField(max_digits=5, decimal_places=2)
+    tour_places = TourPlaceSerializer(source='district.tourist_places', many=True, read_only=True)
 
     class Meta:
         model = WeatherUpdate
