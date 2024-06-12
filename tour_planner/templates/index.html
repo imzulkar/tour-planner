@@ -1,5 +1,256 @@
 {% extends "base_template.html" %}
 {% block content %}
-<h1> Welcome to Tour Planner</h1>
-<p> This is the home page of the Tour Planner</p>
+<div id="myModal" class="modal hidden fixed inset-0 z-100 overflow-auto bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="modal-content bg-white p-8 rounded shadow-lg">
+        <!-- Modal header -->
+        <div class="modal-header flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Weather Information</h2>
+            <button id="closeModal" class="text-gray-500 hover:text-gray-800">&times;</button>
+        </div>
+        <!-- Modal body -->
+        <div class="modal-body mt-4">
+            <!-- Table for weather information -->
+            <table class="table-auto w-full">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2">Date</th>
+                        <th class="px-4 py-2">Min Temp (°C)</th>
+                        <th class="px-4 py-2">Max Temp (°C)</th>
+                        <th class="px-4 py-2">Avg Temp (°C)</th>
+                        <th class="px-4 py-2">Rain (mm)</th>
+                    </tr>
+                </thead>
+                <tbody id="weatherTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="districtModal" class="modal hidden fixed inset-0 z-100 overflow-auto bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="modal-content bg-white p-8 rounded shadow-lg">
+        <!-- Modal header -->
+        <div class="modal-header flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Weather Information</h2>
+            <button id="closeModal2" class="text-gray-500 hover:text-gray-800">&times;</button>
+        </div>
+        <div class="modal-body mt-4">
+            <div class="weather-data" id="weatherData">
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Leaflet Map with Search</h1>
+        <div class="mb-4">
+            <input id="district" type="text" placeholder="Jessore" class="border p-2 rounded mb-2 w-full" />
+            <button id="searchLocation" class="bg-blue-500 text-white p-2 rounded w-full">Search Location</button>
+        </div>
+        <div id="map" class="mb-4"></div>
+        <div class="flex space-x-4">
+            <button id="coolestPlace" class="bg-green-500 text-white p-2 rounded flex-1">Find Coolest Place</button>
+            <button id="hottestPlace" class="bg-red-500 text-white p-2 rounded flex-1">Find Hottest Place</button>
+            <button id="loadData" class="bg-red-500 text-white p-2 rounded flex-1">LoadData</button>
+        </div>
+
+
+    </div>
+    {% block script %}
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([23.805480970296557, 90.41524132346069], 8);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+
+        let marker;
+        function placeMarker(lat, lon, info) {
+                const location = [lat, lon];
+                const marker = L.marker(location).addTo(map);
+                 marker.on('click', () => {
+                     openModal(info);
+            });
+
+
+            }
+        function placeSpecificMarker(lat, lon, info) {
+
+            const location = [lat, lon];
+            if (marker) {
+                marker.setLatLng(location);
+            } else {
+                marker = L.marker(location).addTo(map);
+            }
+            map.setView(location, 14);
+            marker.on('click', () => {
+                openModalWithDistrictInfo(info);
+            });
+        }
+
+        document.getElementById('searchLocation').addEventListener('click', () => {
+            const lat = parseFloat(document.getElementById('lat').value);
+            const lon = parseFloat(document.getElementById('lon').value);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                placeMarker(lat, lon);
+            } else {
+                alert('Please enter valid latitude and longitude values.');
+            }
+        });
+
+        document.getElementById('coolestPlace').addEventListener('click', () => {
+            // Example coordinates for a cool place (Mount Everest)
+            fetchTravelPlace('coolest');
+        });
+
+        document.getElementById('hottestPlace').addEventListener('click', () => {
+            // Example coordinates for a hot place (Death Valley, California)
+            fetchTravelPlace('hottest');
+        });
+        document.getElementById('loadData').addEventListener('click', () => {
+            // Example coordinates for a hot place (Death Valley, California)
+            fetchPlace(false, false);
+        });
+    function openModalWithDistrictInfo(districtInfo) {
+        const modal = document.getElementById("districtModal");
+        const weather = document.getElementById("weatherData");
+        const modalContent = modal.querySelector(".modal-content");
+        const map = document.getElementById("map");
+    map.classList.add("opacity-0");
+        // Populate modal content with district information
+        weather.innerHTML = `
+            <div>
+                <p><strong>District Name:</strong> ${districtInfo.district_name}</p>
+                <p><strong>Bangla Name:</strong> ${districtInfo.district_bn_name}</p>
+                <p><strong>Date:</strong> ${districtInfo.date}</p>
+                <p><strong>Min Temp (°C):</strong> ${districtInfo.min_temp}</p>
+                <p><strong>Max Temp (°C):</strong> ${districtInfo.max_temp}</p>
+                <p><strong>Avg Temp (°C):</strong> ${districtInfo.avg_temp}</p>
+                <p><strong>Rain (mm):</strong> ${districtInfo.rain}</p>
+            </div>
+        `;
+
+
+
+        // Show modal
+        modal.classList.remove("hidden");
+    }
+
+ function openModal(division) {
+    const modal = document.getElementById("myModal");
+    const modalContent = modal.querySelector(".modal-content");
+    const weatherTable = document.getElementById("weatherTable");
+
+    const map = document.getElementById("map");
+    map.classList.add("opacity-0");
+
+    // Clear previous content
+    weatherTable.innerHTML = "";
+
+    // Populate weather information
+    division.weather.forEach(weather => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td class="px-4 py-2">${weather.date}</td>
+            <td class="px-4 py-2">${weather.min_temp}</td>
+            <td class="px-4 py-2">${weather.max_temp}</td>
+            <td class="px-4 py-2">${weather.avg_temp}</td>
+            <td class="px-4 py-2">${weather.rain}</td>
+        `;
+        weatherTable.appendChild(row);
+    });
+
+    // Show modal
+    modal.classList.remove("hidden");
+}
+
+// Close modal when close button is clicked
+document.getElementById("closeModal").addEventListener("click", () => {
+    const modal = document.getElementById("myModal");
+
+    const map = document.getElementById("map");
+    modal.classList.add("hidden");
+    map.classList.remove("opacity-0");
+});
+document.getElementById("closeModal2").addEventListener("click", () => {
+
+    const modal = document.getElementById("districtModal");
+    const map = document.getElementById("map");
+    modal.classList.add("hidden");
+    map.classList.remove("opacity-0");
+});
+
+
+
+
+
+
+
+
+        // Fetch the coolest place data from the API
+function fetchPlace(coolest=false, hottest=false, value='') {
+    // Actual API URL
+    const apiUrl = `/tour/districts/?search=${value}`;
+
+    fetch(apiUrl,{
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log("data", data);
+            if (data.status === "success" && Array.isArray(data.data)) {
+
+                    data.data.forEach(district => {
+                        placeMarker(district.lat, district.lon, district);
+                    });
+
+            } else {
+                alert('Failed to retrieve the coolest place data.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching coolest place:', error);
+            alert('Error fetching coolest place data.');
+        });
+
+    // Call fetchPlace on page load
+    {#fetchPlace();#}
+}
+
+        function fetchTravelPlace(value) {
+            // Actual API URL
+            const apiUrl = `/tour/weather/?search=${value}`;
+
+            fetch(apiUrl,{
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("data..............", data.data[0]);
+
+                    placeSpecificMarker(data.data[0].lat, data.data[0].lon, data.data[0]);
+                })
+                .catch(error => {
+                    console.error('Error fetching coolest place:', error);
+                    alert('Error fetching coolest place data.');
+                });
+
+            // Call fetchPlace on page load
+            {#fetchPlace();#}
+        }
+    </script>
+    {% endblock %}
+
 {% endblock %}

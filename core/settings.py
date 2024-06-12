@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    #  cors
+    'corsheaders',
 
     # Library packages
     "rest_framework",
@@ -81,6 +83,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -293,9 +297,13 @@ DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL", default=f"Tour planner <{EMAIL_HOST_USER}>"
 )
 
-# FIREBASE: Configurations
+# Cors: Configurations
 
-
+CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3030',
+]
 
 # DJANGO DEBUG TOOLBAR: Configurations
 INTERNAL_IPS = [
