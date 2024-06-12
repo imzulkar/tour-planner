@@ -22,6 +22,9 @@ class WeatherInfoSerializer(serializers.ModelSerializer):
 class DistrictSerializer(serializers.ModelSerializer):
     weather = WeatherInfoSerializer(many=True, read_only=True, source='weather_updates')
     division = serializers.CharField(source='division.name')
+    division_density = serializers.CharField(source='division.density')
+    division_area = serializers.CharField(source='division.area')
+    division_population = serializers.CharField(source='division.population')
 
     class Meta:
         model = District
